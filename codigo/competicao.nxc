@@ -4,8 +4,11 @@
 // Gustavo Katague
 // Leandro Aono
 
+#define COLOR Sensor(IN_2)
 #define BLUE 42
 #define RED 65
+
+#define TOUCH Sensor(IN_1)
 
 #define SONAR SensorUS(IN_4)
 #define SONAR_DELAY 50
@@ -112,7 +115,7 @@ task chuta_bola()
 	int sens;
 	while(TRUE)
 	{
-		sens = Sensor(IN_2);
+		sens = COLOR;
 
 		if(sens > (BLUE - 4) && sens < (BLUE + 4))
 		{
