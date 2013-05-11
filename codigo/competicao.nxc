@@ -7,6 +7,7 @@
 #define COLOR Sensor(IN_2)
 #define BLUE 42
 #define RED 65
+#define COLOR_ERROR 4
 
 #define TOUCH Sensor(IN_1)
 
@@ -117,11 +118,11 @@ task hit_ball()
 	{
 		sens = COLOR;
 
-		if(sens > (BLUE - 4) && sens < (BLUE + 4))
+		if(sens > (BLUE - COLOR_ERROR) && sens < (BLUE + COLOR_ERROR))
 		{
 			hit_right();
 		}
-		else if(sens < RED +4 && sens > RED -4)
+		else if(sens < RED + COLOR_ERROR && sens > RED - COLOR_ERROR)
 		{
 			hit_left();
 		}
