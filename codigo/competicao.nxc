@@ -77,25 +77,22 @@ sub inicializa(){
 /*************/
 
 int correcao(int dist){
-    int y = dist;
-    int u = 0;
-    int e = 0;
-    int vve = 0;
+  int y = dist;
+  int u = 0;
+  int e = 0;
+  int vve = 0;
 
-    e = (dist-TOO_CLOSE);
-    ClearScreen();
-    vve = e - eant;
-    E = E+e;
-    eant = e;
+  e = (dist-TOO_CLOSE);
+  vve = e - eant;
+  E = E+e;
+  eant = e;
 
-    if(e < TOO_CLOSE){
-      u = kp*e+kd*vve+(E/ki);
+  u = kp*e+kd*vve+(E/ki);
 
-      if(u > MAX_CORRECTION_RATIO) u = MAX_CORRECTION_RATIO;
-      if(u < -MAX_CORRECTION_RATIO) u = -MAX_CORRECTION_RATIO;
-    }
+  if(u > MAX_CORRECTION_RATIO) u = MAX_CORRECTION_RATIO;
+  if(u < -MAX_CORRECTION_RATIO) u = -MAX_CORRECTION_RATIO;
 
-    return u;
+  return u;
 }
 
 int sonar_esq()
