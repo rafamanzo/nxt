@@ -40,14 +40,14 @@ sub hit_right()
 
 sub rotate_dir()
 {
-  RotateMotor(OUT_C,WHEELS_MOTOR_POWER, 330);
+  RotateMotor(OUT_C,WHEELS_MOTOR_POWER, 360);
 
   Off(OUT_AC);
 }
 
 sub rotate_esq()
 {
-  RotateMotor(OUT_A,WHEELS_MOTOR_POWER, 330);
+  RotateMotor(OUT_A,WHEELS_MOTOR_POWER, 360);
 
   Off(OUT_AC);
 }
@@ -198,14 +198,14 @@ task play_music ()
 
 task main()
 {
- re=71
- 0;
- batidas = 0;
- TOO_CLOSE = 25;
- inicializa();
+  re=710;
+  batidas = 0;
+  TOO_CLOSE = 25;
+  inicializa();
 
- SetSensorLowspeed(IN_4);
- SetSensorTouch(IN_1);
- SetSensorLight(IN_2);
- Precedes(toque,sensor,chuta_bola);
+  SetSensorLowspeed(IN_4);
+  SetSensorTouch(IN_1);
+  SetSensorLight(IN_2);
+
+  Precedes(toque,sensor,chuta_bola);
 }
