@@ -4,8 +4,8 @@
 // Gustavo Katague
 // Leandro Aono
 
-#define Azul 42
-#define Vermelho 65
+#define BLUE 42
+#define RED 65
 
 #define SONAR SensorUS(IN_4)
 #define SONAR_DELAY 50
@@ -114,11 +114,11 @@ task chuta_bola()
 	{
 		sens = Sensor(IN_2);
 
-		if(sens > (Azul - 4) && sens < (Azul + 4))
+		if(sens > (BLUE - 4) && sens < (BLUE + 4))
 		{
 			hit_right();
 		}
-		else if(sens < Vermelho +4 && sens > Vermelho -4)
+		else if(sens < RED +4 && sens > RED -4)
 		{
 			hit_left();
 		}
