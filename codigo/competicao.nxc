@@ -25,13 +25,13 @@
 #define BACKWARD_TIME_INCREASE_RATE 500
 #define INITIAL_BACKWARD_TIME 500
 
-bool perigo;
+bool danger;
 int TOO_CLOSE;
 mutex mut;
 
 int eant;
 int E;
-int batidas;
+int hits;
 int BACKWARD_TIME;
 
 /***************/
@@ -69,17 +69,17 @@ sub backward()
   Off(OUT_AC);
 }
 
-sub inicializa(){
+sub global_vars_reset(){
   E = 0;
   eant = 0;
-  perigo = FALSE;
+  danger = FALSE;
 }
 
 /*************/
 /* Functions */
 /*************/
 
-int correcao(int dist){
+int correction(int dist){
   int y = dist;
   int u = 0;
   int e = 0;
@@ -98,7 +98,7 @@ int correcao(int dist){
   return u;
 }
 
-int sonar_esq()
+int side_wall_dist()
 {
   int dist;
   Wait(SONAR_DELAY);
@@ -110,7 +110,7 @@ int sonar_esq()
 /* TASKS */
 /*********/
 
-task chuta_bola()
+task hit_ball()
 {
 	int sens;
 	while(TRUE)
@@ -129,42 +129,42 @@ task chuta_bola()
 	}
 }
 
-task toque()
+task touch()
 {
   while(TRUE)
   {
     if(SENSOR_1 == 1)
     {
-      perigo = TRUE;
+      danger = TRUE;
       Acquire(mut);
         Off(OUT_AC);
-        batidas++;
-        if(batidas == 4)
+        hits++;
+        if(hits == 4)
         {
           BACKWARD_TIME=BACKWARD_TIME+BACKWARD_TIME_INCREASE_RATE;
-          batidas = 0;
+          hits = 0;
           TOO_CLOSE = TOO_CLOSE+DISTANCE_INCREASE_RATE;
         }
         backward();
         rotate_dir();
-        inicializa();
+        global_vars_reset();
       Release(mut);
     }
   }
 }
 
-task sensor()
+task keep_wall_distance()
 {
-  int dist_esq;
+  int dist;
   
   while(TRUE)
   {
-    if(perigo == FALSE){
-      dist_esq = sonar_esq();
+    if(danger == FALSE){
+      dist = side_wall_dist();
       Acquire(mut);
         Float(OUT_AC);
-        OnFwdReg(OUT_C,WHEELS_MOTOR_POWER-(correcao(dist_esq)),OUT_REGMODE_SPEED);
-        OnFwdReg(OUT_A,WHEELS_MOTOR_POWER+(correcao(dist_esq)),OUT_REGMODE_SPEED);
+        OnFwdReg(OUT_C,WHEELS_MOTOR_POWER-(correction(dist)),OUT_REGMODE_SPEED);
+        OnFwdReg(OUT_A,WHEELS_MOTOR_POWER+(correction(dist)),OUT_REGMODE_SPEED);
       Release(mut);
     }
   }
@@ -206,13 +206,13 @@ task play_music ()
 task main()
 {
   BACKWARD_TIME = INITIAL_BACKWARD_TIME;
-  batidas = 0;
+  hits = 0;
   TOO_CLOSE = INITIAL_DISTANCE;
-  inicializa();
+  global_vars_reset();
 
   SetSensorLowspeed(IN_4);
   SetSensorTouch(IN_1);
   SetSensorLight(IN_2);
 
-  Precedes(toque,sensor,chuta_bola);
+  Precedes(touch,keep_wall_distance,hit_ball);
 }
