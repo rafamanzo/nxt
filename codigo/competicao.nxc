@@ -7,6 +7,7 @@
 #define SONAR SensorUS(IN_4)
 #define SONAR_DELAY 50
 #define WHEELS_MOTOR_POWER 35
+#define DISTANCE_INCREASE_RATE 20
 
 #define ki 500
 #define kp 1
@@ -136,7 +137,7 @@ task toque()
         {
           re=re+500;
           batidas = 0;
-          TOO_CLOSE = TOO_CLOSE+20;
+          TOO_CLOSE = TOO_CLOSE+DISTANCE_INCREASE_RATE;
         }
         backward();
         rotate_dir();
