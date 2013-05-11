@@ -4,17 +4,20 @@
 // Gustavo Katague
 // Leandro Aono
 
+#define Azul 42
+#define Vermelho 65
+
 #define SONAR SensorUS(IN_4)
 #define SONAR_DELAY 50
+
 #define WHEELS_MOTOR_POWER 35
-#define DISTANCE_INCREASE_RATE 20
 
 #define ki 500
 #define kp 1
 #define kd 2
 
-#define Azul 42
-#define Vermelho 65
+#define DISTANCE_INCREASE_RATE 20
+#define BACKWARD_TIME_INCREASE_RATE 500
 
 bool perigo;
 int TOO_CLOSE;
@@ -23,7 +26,7 @@ mutex mut;
 int eant;
 int E;
 int batidas;
-int re;
+int BACKWARD_TIME;
 
 /***************/
 /* Subroutines */
@@ -56,7 +59,7 @@ sub rotate_esq()
 sub backward()
 {
   OnRevReg(OUT_AC,WHEELS_MOTOR_POWER,OUT_REGMODE_SPEED);
-  Wait(re);
+  Wait(BACKWARD_TIME);
   Off(OUT_AC);
 }
 
@@ -88,7 +91,7 @@ int correcao(int dist){
       if(u > 15) u = 15;
       if(u < -15) u = -15;
     }
-    NumOut(30,4,TOO_CLOSE);
+
     return u;
 }
 
@@ -135,7 +138,7 @@ task toque()
         batidas++;
         if(batidas == 4)
         {
-          re=re+500;
+          BACKWARD_TIME=BACKWARD_TIME+BACKWARD_TIME_INCREASE_RATE;
           batidas = 0;
           TOO_CLOSE = TOO_CLOSE+DISTANCE_INCREASE_RATE;
         }
@@ -199,7 +202,7 @@ task play_music ()
 
 task main()
 {
-  re=710;
+  BACKWARD_TIME=710;
   batidas = 0;
   TOO_CLOSE = 25;
   inicializa();
