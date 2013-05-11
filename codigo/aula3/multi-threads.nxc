@@ -1,0 +1,21 @@
+task music() {
+while (true) {
+PlayTone(TONE_A4, MS_500);
+Wait(MS_600);
+}
+}
+task movement() {
+while (true) {
+OnFwd(OUT_A, Random(100));
+Wait(Random(SEC_1));
+}
+}
+task controller() {
+Wait(SEC_10);
+stop music;
+Wait(SEC_5);
+StopAllTasks();
+}
+task main() {
+Precedes(music, movement, controller);
+}

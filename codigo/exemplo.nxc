@@ -1,0 +1,27 @@
+task main()
+{
+  int pot_esq = 40;
+	int r = 20;
+	int y = 0;
+	int u;
+	int e = 0;
+	int E = 0;
+	int ki = 1000;
+	int kp = 10;
+	int kd = 4;
+	int vve = 0;
+	int eant = 0;
+	SetSensorLowspeed(IN_3);
+	while(TRUE)
+	{
+		y=SensorUS(IN_3);
+		e = (y-r);
+		vve = e - eant;
+		E = E+e;
+		u = kp*e+kd*vve+(E/ki);
+		eant = e;
+		if(u >= 100) u = 100;
+		if(u <= -100) u = -100;
+		OnFwdReg(OUT_BC,u,OUT_REGMODE_SPEED);
+	}
+}

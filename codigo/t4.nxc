@@ -1,0 +1,8 @@
+task main(){
+     SetSensor(IN_1, SENSOR_TOUCH);
+     until(SENSOR_1 == 1);
+     OnFwd(OUT_BC, 75);
+     Wait(100);
+     until(SENSOR_1 == 1);
+     Off(OUT_BC);
+}

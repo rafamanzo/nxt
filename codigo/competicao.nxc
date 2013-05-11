@@ -1,0 +1,209 @@
+// Caio Salgado
+// Caio Valente
+// Rafael Reggiani Manzo
+// Gustavo Katague
+// Leandro Aono
+
+
+#define SONAR SensorUS(IN_4)
+#define SONAR_DELAY 50
+#define SONAR_MOTOR_POWER 100
+#define WHEELS_MOTOR_POWER 35
+
+#define ki 500
+#define kp 1
+#define kd 2
+
+#define Azul 42
+#define Vermelho 65
+
+bool perigo;
+
+mutex mut;
+int eant;
+int E;
+int batidas;
+int re;
+int TOO_CLOSE;
+
+int sonar_esq()
+{
+   int dist;
+   Wait(SONAR_DELAY);
+   dist = SONAR;
+   return dist;
+}
+
+
+sub chuta_esquerda()
+{
+	RotateMotor(OUT_B,100,-360);
+}
+
+sub chuta_direita()
+{
+	RotateMotor(OUT_B,100,360);
+}
+
+task chuta_bola()
+{
+	int sens;
+	while(TRUE)
+	{
+		sens = Sensor(IN_2);
+		//NumOut(30,2,sens);
+		if(sens > Azul -4 && sens < Azul+4)
+		{
+			chuta_direita();
+		}
+		else if(sens < Vermelho +4 && sens > Vermelho -4)
+		{
+			chuta_esquerda();
+		}
+		Wait(150);
+	}
+}
+
+
+sub rotate_dir(){
+    RotateMotor(OUT_C,WHEELS_MOTOR_POWER, 330);
+
+    Off(OUT_AC);
+}
+
+sub rotate_esq(){
+    RotateMotor(OUT_A,WHEELS_MOTOR_POWER, 330);
+
+    Off(OUT_AC);
+}
+
+sub backward(){
+   OnRevReg(OUT_AC,WHEELS_MOTOR_POWER,OUT_REGMODE_SPEED);
+   Wait(re);
+   Off(OUT_AC);
+}
+
+int correcao(int dist){
+	  int y = dist;
+	  int u = 0;
+	  int e = 0;
+	  int vve = 0;
+
+	  e = (dist-TOO_CLOSE);
+	  ClearScreen();
+	  //NumOut(70,4,e);
+	  vve = e - eant;
+		E = E+e;
+    eant = e;
+
+		if(e < TOO_CLOSE){
+      u = kp*e+kd*vve+(E/ki);
+
+	    if(u > 15) u = 15;
+	    if(u < -15) u = -15;
+    }
+    NumOut(30,4,TOO_CLOSE);
+		return u;
+}
+
+sub inicializa(){
+    E = 0;
+    eant = 0;
+    perigo = FALSE;
+}
+
+task toque()
+{
+ while(TRUE)
+ {
+  if(SENSOR_1 == 1)
+  {
+    perigo = TRUE;
+    Acquire(mut);
+    Off(OUT_AC);
+    batidas++;
+    if(batidas == 2)
+    {
+       re=re+500;
+       batidas = 0;
+       TOO_CLOSE = TOO_CLOSE+20;
+    }
+    backward();
+    rotate_dir();
+    inicializa();
+    Release(mut);
+    }
+   }
+  }
+
+
+
+
+
+task sensor()
+{
+     int dist_esq;
+     while(TRUE)
+     {
+       if(perigo == FALSE){
+          dist_esq = sonar_esq();
+          Acquire(mut);
+            Float(OUT_AC);
+            OnFwdReg(OUT_C,WHEELS_MOTOR_POWER-(correcao(dist_esq)),OUT_REGMODE_SPEED);
+            OnFwdReg(OUT_A,WHEELS_MOTOR_POWER+(correcao(dist_esq)),OUT_REGMODE_SPEED);
+          Release(mut);
+       }
+
+      }
+}
+
+task play_music ()
+{
+ while(TRUE) {
+    PlayToneEx(392, 300, 9, FALSE);
+    Wait(600);
+    PlayToneEx(466, 300, 9, FALSE);
+    Wait(600);
+    PlayToneEx(523, 600, 9, FALSE);
+    Wait(900);
+
+    PlayToneEx(392, 300, 9, FALSE);
+    Wait(600);
+    PlayToneEx(466, 300, 9, FALSE);
+    Wait(600);
+    PlayToneEx(544, 300, 9, FALSE);
+    Wait(300);
+    PlayToneEx(523, 900, 9, FALSE);
+    Wait(1200);
+
+
+    PlayToneEx(392, 300, 9, FALSE);
+    Wait(600);
+    PlayToneEx(466, 300, 9, FALSE);
+    Wait(600);
+    PlayToneEx(523, 600, 9, FALSE);
+    Wait(900);
+    PlayToneEx(466, 300, 9, FALSE);
+    Wait(600);
+    PlayToneEx(392, 600, 9, FALSE);
+    Wait(2100);
+    }
+}
+
+
+task main()
+{
+ re=710;
+ batidas = 0;
+ TOO_CLOSE = 25;
+ inicializa();
+
+ SetSensorLowspeed(IN_4);
+ SetSensorTouch(IN_1);
+ //SetSensorType(IN_2,IN_TYPE_LIGHT_INACTIVE);
+ //SetSensorMode(IN_2,IN_MODE_PCTFULLSCALE);
+ //ResetSensor(IN_2);
+ SetSensorLight(IN_2);
+ Precedes(toque,sensor,chuta_bola);
+}
+

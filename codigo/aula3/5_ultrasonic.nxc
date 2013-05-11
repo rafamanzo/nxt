@@ -1,0 +1,12 @@
+#define NEAR 20 //cm
+
+task main(){
+   SetSensorLowspeed(IN_3);
+   while(true){
+     OnFwdReg(OUT_BC,20,OUT_REGMODE_SYNC);
+     while(SensorUS(IN_3)>NEAR);
+     Off(OUT_BC);
+     OnRev(OUT_C,40);
+     Wait(800);
+   }
+}

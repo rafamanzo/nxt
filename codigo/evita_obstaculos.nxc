@@ -1,0 +1,127 @@
+bool perigo;
+mutex mut;
+
+
+sub rot_rand_esq()
+{
+   int r;
+   int turn = Random(300)+200;
+   OnFwdReg(OUT_B,30,OUT_REGMODE_SPEED);
+   OnRevReg(OUT_C,30,OUT_REGMODE_SPEED);
+   Wait(turn);
+   Off(OUT_BC);
+}
+
+sub rot_rand_dir()
+{
+   int r;
+   int turn = Random(300)+200;
+   OnFwdReg(OUT_C,30,OUT_REGMODE_SPEED);
+   OnRevReg(OUT_B,30,OUT_REGMODE_SPEED);
+   Wait(turn);
+   Off(OUT_BC);
+}
+
+task move_rand()
+{
+ int r;
+ int turn;
+ while(TRUE)
+ {
+   r = Random(32);
+   while(perigo==TRUE);
+   OnFwdReg(OUT_BC,50,OUT_REGMODE_SPEED);
+   Wait(400);
+   Off(OUT_BC);
+   while(perigo==TRUE);
+   if(r > 29)
+   {
+      Acquire(mut);
+      if(r == 30) rot_rand_dir();
+      else if(r == 31) rot_rand_esq();
+      Release(mut);
+   }
+   Off(OUT_BC);
+ }
+}
+
+inline int rot_sens_dir()
+{
+   int direita,esquerda;
+   direita = esquerda = 0;
+   RotateMotor(OUT_A,25,-60);
+   Wait(200);
+   esquerda = SensorUS(IN_1);
+   RotateMotor(OUT_A,25,120);
+   Wait(200);
+   direita = SensorUS(IN_1);
+   RotateMotor(OUT_A,25,-60);
+   Off(OUT_A);
+   if(direita > esquerda) return FALSE;
+   return TRUE;
+}
+
+
+task sensor()
+{
+     bool dir;
+     while(TRUE)
+     {
+       if(SensorUS(IN_1) < 25)
+       {
+          perigo = TRUE;
+          Acquire(mut);
+          Wait(100);
+          dir = rot_sens_dir();
+          Wait(100);
+          if(dir) rot_rand_dir();
+          else rot_rand_esq();
+          Release(mut);
+
+       }
+       else perigo = FALSE;
+     }
+     
+}
+
+task play_music ()
+{
+while(TRUE) {
+    PlayToneEx(392, 400, 9, FALSE);
+    Wait(400);
+    PlayToneEx(466, 400, 9, FALSE);
+    Wait(400);
+    PlayToneEx(554, 400, 9, FALSE);
+
+    Wait(200);
+
+    PlayToneEx(392, 400, 9, FALSE);
+    Wait(400);
+    PlayToneEx(466, 400, 9, FALSE);
+    Wait(400);
+    PlayToneEx(587, 100, 9, FALSE);
+    Wait(100);
+    PlayToneEx(554, 300, 9, FALSE);
+    Wait(300);
+    
+    
+    PlayToneEx(392, 400, 9, FALSE);
+    Wait(400);
+    PlayToneEx(466, 400, 9, FALSE);
+    Wait(400);
+    PlayToneEx(554, 600, 9, FALSE);
+    Wait(600);
+    PlayToneEx(466, 400, 9, FALSE);
+    Wait(400);
+    PlayToneEx(392, 400, 9, FALSE);
+    Wait(400);
+}
+}
+
+task main()
+{
+ perigo = FALSE;
+ SetSensorLowspeed(IN_1);
+ Precedes(move_rand,sensor);
+ Precedes(play_music);
+}

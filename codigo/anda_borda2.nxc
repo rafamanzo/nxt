@@ -1,0 +1,131 @@
+// Caio Valente
+// Rafael Reggiani Manzo
+// Gustavo Katague
+// Leandro Aono
+
+
+#define SONAR SensorUS(IN_3)
+#define TOO_CLOSE 35
+#define SONAR_DELAY 200
+#define SONAR_MOTOR_POWER 100
+#define WHEELS_MOTOR_POWER 45
+
+bool perigo;
+
+mutex mut;
+
+int sonar_esq()
+{
+   int dist;
+   Wait(SONAR_DELAY);
+   dist = SONAR;
+   return dist;
+}
+
+sub rotate_dir(){
+    RotateMotor(OUT_C,WHEELS_MOTOR_POWER, 360);
+
+    Off(OUT_BC);
+}
+
+sub rotate_esq(){
+    RotateMotor(OUT_B,WHEELS_MOTOR_POWER, 360);
+
+    Off(OUT_BC);
+}
+
+sub backward(){
+   OnRevReg(OUT_BC,WHEELS_MOTOR_POWER,OUT_REGMODE_SPEED);
+   Wait(1000);
+   Off(OUT_BC);
+}
+
+
+task toque()
+{
+ while(TRUE)
+ {
+  if(SENSOR_4 == 1)
+  {
+    Acquire(mut);
+    Off(OUT_BC);
+    perigo = TRUE;
+    backward();
+    rotate_dir();
+    perigo = FALSE;
+    Release(mut);
+    }
+   }
+  }
+    
+    
+    
+
+
+task sensor()
+{
+     int dist_esq;
+     OnFwdReg(OUT_BC,WHEELS_MOTOR_POWER,OUT_REGMODE_SPEED);
+     while(TRUE)
+     {
+
+       if(perigo == FALSE){
+          dist_esq = sonar_esq();
+          Acquire(mut);
+          if(dist_esq < TOO_CLOSE){
+            OnFwdReg(OUT_B,WHEELS_MOTOR_POWER,OUT_REGMODE_SPEED);
+            OnFwdReg(OUT_C,WHEELS_MOTOR_POWER+3,OUT_REGMODE_SPEED);
+
+          }else{
+            OnFwdReg(OUT_B,WHEELS_MOTOR_POWER+3,OUT_REGMODE_SPEED);
+            OnFwdReg(OUT_C,WHEELS_MOTOR_POWER,OUT_REGMODE_SPEED);
+            }
+          Wait(300);
+          Release(mut);
+          }
+
+      }
+}
+
+task play_music ()
+{
+ while(TRUE) {
+    PlayToneEx(392, 300, 9, FALSE);
+    Wait(600);
+    PlayToneEx(466, 300, 9, FALSE);
+    Wait(600);
+    PlayToneEx(523, 600, 9, FALSE);
+    Wait(900);
+
+    PlayToneEx(392, 300, 9, FALSE);
+    Wait(600);
+    PlayToneEx(466, 300, 9, FALSE);
+    Wait(600);
+    PlayToneEx(544, 300, 9, FALSE);
+    Wait(300);
+    PlayToneEx(523, 900, 9, FALSE);
+    Wait(1200);
+
+
+    PlayToneEx(392, 300, 9, FALSE);
+    Wait(600);
+    PlayToneEx(466, 300, 9, FALSE);
+    Wait(600);
+    PlayToneEx(523, 600, 9, FALSE);
+    Wait(900);
+    PlayToneEx(466, 300, 9, FALSE);
+    Wait(600);
+    PlayToneEx(392, 600, 9, FALSE);
+    Wait(2100);
+    }
+}
+
+
+task main()
+{
+ perigo = FALSE;
+ SetSensorLowspeed(IN_3);
+ SetSensorTouch(IN_4);
+ Precedes(toque,sensor);
+ Precedes(play_music);
+}

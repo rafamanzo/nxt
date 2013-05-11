@@ -1,0 +1,169 @@
+#define SONAR SensorUS(IN_3)
+#define TOO_CLOSE 25
+#define ERROR 5
+#define SONAR_DELAY 200
+#define SONAR_MOTOR_POWER 100
+#define WHEELS_MOTOR_POWER 35
+#define WHEELS_MOTOR_EXTRA 15
+
+bool perigo;
+
+mutex mut;
+
+int sonar_esq()
+{
+   int dist;
+
+   RotateMotor(OUT_A,SONAR_MOTOR_POWER,90);
+   Wait(SONAR_DELAY);
+   dist = SONAR;
+   RotateMotor(OUT_A,SONAR_MOTOR_POWER,-90);
+   
+   return dist;
+}
+
+int sonar_dir()
+{
+   int dist;
+   
+   RotateMotor(OUT_A,SONAR_MOTOR_POWER,-90);
+   Wait(SONAR_DELAY);
+   dist = SONAR;
+   RotateMotor(OUT_A,SONAR_MOTOR_POWER,90);
+   
+   return dist;
+}
+
+sub rotate_dir(){
+    RotateMotor(OUT_C,WHEELS_MOTOR_POWER, 360);
+
+    Off(OUT_C);
+}
+
+sub rotate_esq(){
+    RotateMotor(OUT_B,WHEELS_MOTOR_POWER, 360);
+
+    Off(OUT_B);
+}
+
+sub foward(){
+   OnFwdReg(OUT_BC,WHEELS_MOTOR_POWER,OUT_REGMODE_SPEED);
+   Wait(400);
+   Off(OUT_BC);
+}
+
+sub backward(){
+   Off(OUT_BC);
+   OnRevReg(OUT_BC,WHEELS_MOTOR_POWER,OUT_REGMODE_SPEED);
+   Wait(1000);
+   Off(OUT_BC);
+}
+
+task move()
+{
+ while(TRUE)
+ {
+   while(perigo == TRUE);
+   Acquire(mut);
+   foward();
+   Release(mut);
+ }
+}
+
+task sensor()
+{
+     int dist_esq;
+
+     while(TRUE)
+     {
+
+       if(SONAR < TOO_CLOSE - ERROR )
+       {
+          perigo = TRUE;
+
+          Acquire(mut);
+          backward();
+          
+          PlayToneEx(392, 300, 9, FALSE);
+          Wait(600);
+          
+//          Acquire(mut);
+          rotate_dir();
+          Release(mut);
+
+       }else{
+          dist_esq = sonar_esq();
+       
+          if(dist_esq < TOO_CLOSE - ERROR){
+            perigo = TRUE;
+            
+            PlayToneEx(523, 600, 9, FALSE);
+            Wait(900);
+            
+            Acquire(mut);
+            rotate_dir();
+            foward();
+            rotate_esq();
+            Release(mut);
+          }else{
+            if(dist_esq > TOO_CLOSE + ERROR){
+              perigo = TRUE;
+              Acquire(mut);
+              rotate_esq();
+              foward();
+              rotate_dir();
+              Release(mut);
+            }else{
+              perigo = FALSE;
+            }
+          }
+       }
+     }
+     
+}
+
+task play_music ()
+{
+ while(TRUE) {
+    PlayToneEx(392, 300, 9, FALSE);
+    PlayToneEx(523, 300, 9, FALSE);
+    Wait(600);
+    PlayToneEx(466, 300, 9, FALSE);
+    Wait(600);
+    PlayToneEx(523, 600, 9, FALSE);
+    Wait(900);
+
+    PlayToneEx(392, 300, 9, FALSE);
+    Wait(600);
+    PlayToneEx(466, 300, 9, FALSE);
+    Wait(600);
+    PlayToneEx(544, 300, 9, FALSE);
+    Wait(300);
+    PlayToneEx(523, 900, 9, FALSE);
+    Wait(1200);
+
+
+    PlayToneEx(392, 300, 9, FALSE);
+    Wait(600);
+    PlayToneEx(466, 300, 9, FALSE);
+    Wait(600);
+    PlayToneEx(523, 600, 9, FALSE);
+    Wait(900);
+    PlayToneEx(466, 300, 9, FALSE);
+    Wait(600);
+    PlayToneEx(392, 600, 9, FALSE);
+    Wait(2100);
+    }
+}
+
+
+task main()
+{
+ /*rotate_dir();
+ rotate_esq();*/
+ perigo = TRUE;
+ SetSensorLowspeed(IN_3);
+ SetSensorTouch(IN_4);
+ Precedes(move,sensor);
+ Precedes(play_music);
+}

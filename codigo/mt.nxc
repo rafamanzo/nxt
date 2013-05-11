@@ -1,0 +1,33 @@
+task music() {
+//while (true) {
+PlayTone(TONE_G4, SEC_1);
+Wait(MS_250);
+PlayTone(TONE_A4, SEC_1);
+Wait(MS_250);
+PlayTone(TONE_B4, SEC_1);
+Wait(MS_250);
+PlayTone(TONE_C4, SEC_1);
+Wait(MS_500);
+PlayTone(TONE_D4, SEC_1);
+Wait(MS_500);
+PlayTone(TONE_B4, SEC_1);
+Wait(MS_500);
+PlayTone(TONE_C4, SEC_1);
+Wait(MS_500);
+//Wait(MS_100);
+//}
+}
+task movement() {
+while (true) {
+OnFwd(OUT_B, Random(100));
+Wait(Random(SEC_1));
+}
+}
+task controller() {
+Wait(SEC_10);
+
+StopAllTasks();
+}
+task main() {
+Precedes(music, movement, controller);
+}
