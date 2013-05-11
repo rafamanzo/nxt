@@ -17,7 +17,9 @@
 #define kd 2
 
 #define DISTANCE_INCREASE_RATE 20
+#define INITIAL_DISTANCE 20
 #define BACKWARD_TIME_INCREASE_RATE 500
+#define INITIAL_BACKWARD_TIME 500
 
 bool perigo;
 int TOO_CLOSE;
@@ -202,9 +204,9 @@ task play_music ()
 
 task main()
 {
-  BACKWARD_TIME=710;
+  BACKWARD_TIME = INITIAL_BACKWARD_TIME;
   batidas = 0;
-  TOO_CLOSE = 25;
+  TOO_CLOSE = INITIAL_DISTANCE;
   inicializa();
 
   SetSensorLowspeed(IN_4);
