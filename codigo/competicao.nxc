@@ -28,12 +28,12 @@ int re;
 /* Subroutines */
 /***************/
 
-sub chuta_esquerda()
+sub hit_left()
 {
 	RotateMotor(OUT_B,100,-360);
 }
 
-sub chuta_direita()
+sub hit_right()
 {
 	RotateMotor(OUT_B,100,360);
 }
@@ -77,7 +77,6 @@ int correcao(int dist){
 
     e = (dist-TOO_CLOSE);
     ClearScreen();
-    //NumOut(70,4,e);
     vve = e - eant;
     E = E+e;
     eant = e;
@@ -110,14 +109,14 @@ task chuta_bola()
 	while(TRUE)
 	{
 		sens = Sensor(IN_2);
-		//NumOut(30,2,sens);
+
 		if(sens > (Azul - 4) && sens < (Azul + 4))
 		{
-			chuta_direita();
+			hit_right();
 		}
 		else if(sens < Vermelho +4 && sens > Vermelho -4)
 		{
-			chuta_esquerda();
+			hit_left();
 		}
 		Wait(150);
 	}
@@ -199,16 +198,14 @@ task play_music ()
 
 task main()
 {
- re=710;
+ re=71
+ 0;
  batidas = 0;
  TOO_CLOSE = 25;
  inicializa();
 
  SetSensorLowspeed(IN_4);
  SetSensorTouch(IN_1);
- //SetSensorType(IN_2,IN_TYPE_LIGHT_INACTIVE);
- //SetSensorMode(IN_2,IN_MODE_PCTFULLSCALE);
- //ResetSensor(IN_2);
  SetSensorLight(IN_2);
  Precedes(toque,sensor,chuta_bola);
 }
