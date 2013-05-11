@@ -15,6 +15,7 @@
 #define ki 500
 #define kp 1
 #define kd 2
+#define MAX_CORRECTION_RATIO 15
 
 #define DISTANCE_INCREASE_RATE 20
 #define INITIAL_DISTANCE 20
@@ -90,8 +91,8 @@ int correcao(int dist){
     if(e < TOO_CLOSE){
       u = kp*e+kd*vve+(E/ki);
 
-      if(u > 15) u = 15;
-      if(u < -15) u = -15;
+      if(u > MAX_CORRECTION_RATIO) u = MAX_CORRECTION_RATIO;
+      if(u < -MAX_CORRECTION_RATIO) u = -MAX_CORRECTION_RATIO;
     }
 
     return u;
