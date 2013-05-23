@@ -1,0 +1,41 @@
+#define COLOR Sensor(IN_1)
+#define BLUE 30
+#define RED 50
+#define COLOR_ERROR 4
+
+sub hit_left()
+{
+	RotateMotor(OUT_C,100,-110);
+}
+
+sub hit_right()
+{
+	RotateMotor(OUT_C,100,110);
+}
+
+task launcher(){
+  int color = 0;
+
+  while(TRUE){
+    color = COLOR;
+    ClearScreen();
+    NumOut(30,4, color);
+    
+    if(color > BLUE)
+      hit_right();
+      
+    Wait(1000);
+  }
+}
+
+task colector(){
+  while(TRUE){
+    OnFwd(OUT_A, -100);
+  }
+}
+
+task main(){
+  SetSensorLight(IN_1);
+
+  Precedes(colector, launcher);
+}
