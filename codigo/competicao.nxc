@@ -5,8 +5,8 @@
 // Leandro Aono
 
 #define COLOR Sensor(IN_2)
-#define BLUE 42
-#define RED 65
+#define BLUE 30
+#define RED 50
 #define COLOR_ERROR 4
 
 #define TOUCH Sensor(IN_1)
@@ -19,12 +19,12 @@
 #define ki 500
 #define kp 1
 #define kd 2
-#define MAX_CORRECTION_RATIO 15
+#define MAX_CORRECTION_RATIO 3
 
 #define DISTANCE_INCREASE_RATE 20
-#define INITIAL_DISTANCE 20
+#define INITIAL_DISTANCE 13
 #define BACKWARD_TIME_INCREASE_RATE 1000
-#define INITIAL_BACKWARD_TIME 1000
+#define INITIAL_BACKWARD_TIME 700
 
 bool danger;
 int TOO_CLOSE;
@@ -117,7 +117,8 @@ task hit_ball()
 	while(TRUE)
 	{
 		sens = COLOR;
-
+    ClearScreen();
+    NumOut(30,4,sens);
 		if(sens > (BLUE - COLOR_ERROR) && sens < (BLUE + COLOR_ERROR))
 		{
 			hit_right();
