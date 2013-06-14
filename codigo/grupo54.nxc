@@ -1,0 +1,153 @@
+#define COLOR Sensor(IN_1)
+#define BLUE 30
+#define RED 58
+#define COLOR_ERROR 4
+#define BASE_SPEED 30
+
+#define HIT_POTENCY 85
+#define TOO_CLOSE 25
+
+#define ki 500
+#define kp 1
+#define kd 2
+
+
+int SPEED;
+int LEFT;
+int PID;
+
+
+int eant;
+int E;
+
+
+sub inicializa()
+{
+    E = 0;
+    eant = 0;
+}
+
+
+sub rotate180()
+{
+     OnRevReg(OUT_A,75, OUT_REGMODE_SPEED);
+     OnFwdReg(OUT_B,75, OUT_REGMODE_SPEED);
+     Wait(750);
+     Off(OUT_AB);
+}
+
+sub rotate_dir(){
+     RotateMotor(OUT_B,75, 520);
+     Wait(1300);
+     Off(OUT_AB);
+}
+
+sub rotate_esq(){
+     RotateMotor(OUT_A,75, 520);
+     Wait(1300);
+     Off(OUT_AB);
+}
+
+sub backward(){
+    OnRevReg(OUT_AB,SPEED*2,OUT_REGMODE_SPEED);
+    Wait(900);
+    Off(OUT_AB);
+}
+
+
+sub hit_left(int pot)
+{
+    RotateMotor(OUT_C,pot,-110);
+}
+
+sub hit_right(int pot)
+{
+    RotateMotor(OUT_C,pot,110);
+}
+
+task launcher()
+{
+    int color = 0;
+
+    while(TRUE)
+    {
+        color = COLOR;
+        ClearScreen();
+        NumOut(30,4, color);
+
+        if(color > RED )
+        {
+            SPEED = (BASE_SPEED/2);
+            if(LEFT) hit_left(HIT_POTENCY);
+            else if(!LEFT) hit_right(HIT_POTENCY);
+        }
+        else if(color > BLUE -3 && color < BLUE + 3)
+        {
+            SPEED = (BASE_SPEED/2);
+            if(LEFT) hit_right(HIT_POTENCY/4);
+            else if(!LEFT) hit_left(HIT_POTENCY/4);
+        }
+        Wait(1000);
+    }
+    SPEED = BASE_SPEED;
+}
+
+int correcao(int dist){
+	  int y = dist;
+	  int u = 0;
+	  int e = 0;
+	  int vve = 0;
+
+	  e = (dist-TOO_CLOSE);
+	  vve = e - eant;
+      E = E+e;
+      eant = e;
+      if(e < TOO_CLOSE)
+      {
+          u = kp*e+kd*vve+(E/ki);
+
+	      if(u > 15) u = 15;
+	      if(u < -15) u = -15;
+       }
+       NumOut(30,4,TOO_CLOSE);
+       if(LEFT) return u;
+       else return -u;
+}
+
+task colector()
+{
+    int u;
+    while(TRUE)
+    {
+        // Ver em qual lado deve acontecer a correcao para cada robo
+        if(LEFT)
+        {
+            u = correcao(SensorUS(IN_4));
+        }
+        else u = 0;
+        OnFwdReg(OUT_A, SPEED+u,OUT_REGMODE_SPEED);
+        OnFwdReg(OUT_B, SPEED-u,OUT_REGMODE_SPEED);
+        if(Sensor(IN_2))
+        {
+            Off(OUT_AB);
+            backward();
+            rotate180();
+            LEFT = !LEFT;
+            // LOGICA PARA ANDAR NUM RETANGULO EM UM DOS ROBOS
+            inicializa();
+            Off(OUT_AB);
+        }
+    }
+}
+
+task main()
+{
+    inicializa();
+    LEFT = 1;
+    SPEED = BASE_SPEED;
+    SetSensorLight(IN_1);
+    SetSensorTouch(IN_2);
+    SetSensorLowspeed(IN_4);
+    Precedes( colector, launcher);
+  
+}
