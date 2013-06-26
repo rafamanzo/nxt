@@ -1,39 +1,41 @@
-#define COLOR Sensor(IN_1)
-#define GRAY 25
-#define BLUE 31
-#define RED 58
+#define GRAY 32
+#define BLACK 20
+#define RED 61
 #define BASE_SPEED 35
 
 #define HIT_POTENCY 85
-#define TOO_CLOSE 25
-
-#define ki 500
-#define kp 1
-#define kd 2
-
+#define NORTH 323
+#define SOUTH 105
 
 int SPEED;
 int LEFT;
 int PID;
 
-
-int eant;
-int E;
-
-
-sub inicializa()
-{
-    E = 0;
-    eant = 0;
-}
-
-
 sub rotate180()
 {
-     OnRevReg(OUT_A,75, OUT_REGMODE_SPEED);
-     OnFwdReg(OUT_B,75, OUT_REGMODE_SPEED);
-     Wait(750);
-     Off(OUT_AB);
+     /*int sinal = 1;
+     if(LEFT) sinal = -1;
+     
+     OnRevReg(OUT_A,sinal*75, OUT_REGMODE_SPEED);
+     OnFwdReg(OUT_B,sinal*75, OUT_REGMODE_SPEED);
+     Wait(810);
+     Off(OUT_AB);*/
+     
+     if( LEFT == 1 ){
+         RotateMotor(OUT_A, 75, 120);
+         RotateMotor(OUT_B, 75, -360);
+         OnRevReg(OUT_AB, 75, OUT_REGMODE_SPEED);
+         Wait(600);
+         Off(OUT_AB);
+         RotateMotor(OUT_A, 75, 600);
+     }else{
+         RotateMotor(OUT_B, 75, 120);
+         RotateMotor(OUT_A, 75, -360);
+         OnRevReg(OUT_AB, 75, OUT_REGMODE_SPEED);
+         Wait(600);
+         Off(OUT_AB);
+         RotateMotor(OUT_B, 75, 600);
+     }
 }
 
 sub rotate_dir(){
@@ -67,7 +69,8 @@ sub hit_right(int pot)
 
 sub rotate_bat()
 {
-    RotateMotor(OUT_C,40,60);
+    RotateMotor(OUT_C,40,52);
+    PlayTone(440,1000);
     
 }
 
@@ -77,11 +80,9 @@ task launcher()
 
     while(TRUE)
     {
-        color = COLOR;
-        ClearScreen();
-        NumOut(30,4, color);
+        color = Sensor(IN_1);
 
-        if(color > GRAY+3 && color < GRAY-3)
+        if(color > GRAY-3 && color < GRAY+3)
         {
             rotate_bat();
         }
@@ -91,7 +92,7 @@ task launcher()
             if(LEFT) hit_left(HIT_POTENCY);
             else if(!LEFT) hit_right(HIT_POTENCY);
         }
-        else if(color > BLUE -3 && color < BLUE + 3)
+        else if(color > BLACK -3 && color < BLACK + 3)
         {
             SPEED = (BASE_SPEED/2);
             if(LEFT) hit_right(HIT_POTENCY/4);
@@ -104,61 +105,65 @@ task launcher()
 }
 
 int correcao(int dist){
-	  int y = dist;
-	  int u = 0;
-	  int e = 0;
-	  int vve = 0;
+  int e, u;
 
-	  e = (dist-TOO_CLOSE);
-	  vve = e - eant;
-      E = E+e;
-      eant = e;
-      if(e < TOO_CLOSE)
-      {
-          u = kp*e+kd*vve+(E/ki);
+  if (LEFT)
+  {
+    e = (dist-NORTH);
+  }
+  else{
+    e = (dist-SOUTH);
+  }
+  
+  u = e;
+  if(u > 5) u = 5;
+  if(u < -5) u = -5;
+  
+  return u;
+}
 
-	      if(u > 8) u = 8;
-	      if(u < -8) u = -8;
-       }
-       NumOut(30,4,TOO_CLOSE);
-       if(LEFT) return u;
-       else return -u;
+task imprime(){
+  int compass;
+
+  while(TRUE){
+    ClearScreen();
+    compass = SensorHTCompass(IN_4);
+    NumOut(30,60, compass);
+    Wait(1000);
+  }
 }
 
 task colector()
 {
-    int u;
+    int u, compass;
     while(TRUE)
     {
-        // Ver em qual lado deve acontecer a correcao para cada robo
-        if(LEFT)
-        {
-            u = correcao(SensorUS(IN_4));
-        }
-        else u = 0;
-        OnFwdReg(OUT_A, SPEED+u,OUT_REGMODE_SPEED);
-        OnFwdReg(OUT_B, SPEED-u,OUT_REGMODE_SPEED);
+        compass = SensorHTCompass(IN_4);
+
+        u = correcao(compass);
+
+        OnFwdReg(OUT_A, SPEED-u,OUT_REGMODE_SPEED);
+        OnFwdReg(OUT_B, SPEED+u,OUT_REGMODE_SPEED);
         if(Sensor(IN_2))
         {
-            Off(OUT_AB);
-            backward();
-            rotate180();
-            LEFT = !LEFT;
-            // LOGICA PARA ANDAR NUM RETANGULO EM UM DOS ROBOS
-            inicializa();
-            Off(OUT_AB);
+          Off(OUT_AB);
+          backward();
+          rotate180();
+          LEFT = !LEFT;
+          // LOGICA PARA ANDAR NUM RETANGULO EM UM DOS ROBOS
+          Off(OUT_AB);
         }
     }
 }
 
 task main()
 {
-    inicializa();
-    LEFT = 1;
-    SPEED = BASE_SPEED;
-    SetSensorLight(IN_1);
-    SetSensorTouch(IN_2);
-    SetSensorLowspeed(IN_4);
-    Precedes( colector, launcher);
-  
+  LEFT = 1;
+  SPEED = BASE_SPEED;
+  SetSensorLight(IN_1);
+  SetSensorTouch(IN_2);
+  SetSensorLowspeed(IN_4);
+  //Precedes( colector, launcher);
+
+  Precedes( imprime);
 }
