@@ -148,9 +148,14 @@ task colector()
         {
           Off(OUT_AB);
           backward();
-          rotate180();
+          rotate_esq();
+          Off(OUT_AB);
+          OnFwdReg(OUT_A, SPEED,OUT_REGMODE_SPEED);
+          OnFwdReg(OUT_B, SPEED,OUT_REGMODE_SPEED);
+          Wait(2000);
+          Off(OUT_AB);
+          rotate_esq();
           LEFT = !LEFT;
-          // LOGICA PARA ANDAR NUM RETANGULO EM UM DOS ROBOS
           Off(OUT_AB);
         }
     }
@@ -160,10 +165,16 @@ task main()
 {
   LEFT = 1;
   SPEED = BASE_SPEED;
+  Off(OUT_AB);
+  OnFwdReg(OUT_A, SPEED,OUT_REGMODE_SPEED);
+  OnFwdReg(OUT_B, SPEED,OUT_REGMODE_SPEED);
+  Wait(2500);
+  Off(OUT_AB);
+  rotate_esq();
   SetSensorLight(IN_1);
   SetSensorTouch(IN_2);
   SetSensorLowspeed(IN_4);
   //Precedes( colector, launcher);
 
-  Precedes( imprime);
+  Precedes( imprime, colector);
 }
